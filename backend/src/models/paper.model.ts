@@ -12,6 +12,8 @@ export interface Paper {
   userId: Schema.Types.ObjectId;
   title: string;
   firstAuthorName: string;
+  paperFileUrl?: string;
+  paperFileName?: string;
   researchDomain: ResearchDomain;
   readingStage: ReadingStage;
   readingStageHistory: Array<{
@@ -30,6 +32,8 @@ const paperSchema = new Schema<Paper>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     title: { type: String, required: true, trim: true },
     firstAuthorName: { type: String, required: true, trim: true },
+    paperFileUrl: { type: String, required: false, trim: true },
+    paperFileName: { type: String, required: false, trim: true },
     researchDomain: { type: String, enum: RESEARCH_DOMAINS, required: true },
     readingStage: { type: String, enum: READING_STAGES, required: true },
     readingStageHistory: [

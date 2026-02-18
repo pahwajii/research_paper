@@ -1,6 +1,6 @@
 import { Alert, Box, Button, Card, CardContent, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { FormEvent, useMemo, useState } from "react";
-import { createPaper } from "../api/client";
+import { createPaperWithOptionalFile } from "../api/client";
 import { IMPACT_SCORES, PaperFormInput, READING_STAGES, RESEARCH_DOMAINS } from "../types";
 
 const getDefaultForm = (): PaperFormInput => ({
@@ -13,11 +13,14 @@ const getDefaultForm = (): PaperFormInput => ({
   dateAdded: new Date().toISOString().slice(0, 10)
 });
 
+const MAX_PAPER_FILE_SIZE = 10 * 1024 * 1024;
+
 export const AddPaperPage = () => {
   const [form, setForm] = useState<PaperFormInput>(getDefaultForm());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [paperFile, setPaperFile] = useState<File | null>(null);
 
   const validationError = useMemo(() => {
     if (!form.title.trim()) return "Paper Title is required.";
@@ -39,9 +42,10 @@ export const AddPaperPage = () => {
       setIsSubmitting(true);
       setError("");
       setMessage("");
-      await createPaper(form);
+      await createPaperWithOptionalFile(form, paperFile);
       setMessage("Paper added successfully.");
       setForm(getDefaultForm());
+      setPaperFile(null);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Failed to add paper.");
     } finally {
@@ -56,7 +60,7 @@ export const AddPaperPage = () => {
           Add Research Paper
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 700 }}>
-          Fill all fields to add a paper to your persistent library.
+          Add your paper metadata and optionally upload a PDF. Upload is optional, so you can store record-only entries.
         </Typography>
 
         <Box component="form" onSubmit={onSubmit}>
@@ -140,6 +144,38 @@ export const AddPaperPage = () => {
               InputLabelProps={{ shrink: true }}
               required
             />
+
+            <Button variant="outlined" component="label" sx={{ alignSelf: "flex-start" }}>
+              {paperFile ? "Change PDF" : "Attach PDF (Optional)"}
+              <input
+                hidden
+                type="file"
+                accept="application/pdf"
+                onChange={(event) => {
+                  const selectedFile = event.target.files?.[0] ?? null;
+                  if (!selectedFile) {
+                    setPaperFile(null);
+                    return;
+                  }
+                  if (selectedFile.type !== "application/pdf") {
+                    setError("Only PDF files are allowed.");
+                    setPaperFile(null);
+                    return;
+                  }
+                  if (selectedFile.size > MAX_PAPER_FILE_SIZE) {
+                    setError("PDF must be 10MB or smaller.");
+                    setPaperFile(null);
+                    return;
+                  }
+
+                  setError("");
+                  setPaperFile(selectedFile);
+                }}
+              />
+            </Button>
+            <Typography variant="caption" color="text.secondary">
+              {paperFile ? `Selected: ${paperFile.name}` : "No file selected. Record-only save is supported."}
+            </Typography>
 
             <Button
               type="submit"

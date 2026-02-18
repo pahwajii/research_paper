@@ -1,10 +1,12 @@
 import {
   Alert,
+  Link,
   Card,
   CardContent,
   Chip,
   CircularProgress,
   FormControl,
+  InputLabel,
   MenuItem,
   Select,
   Stack,
@@ -19,7 +21,16 @@ import {
 import { useEffect, useState } from "react";
 import { getPapers, updatePaperReadingStage } from "../api/client";
 import { FilterPanel } from "../components/FilterPanel";
-import { Paper, PaperFilters, READING_STAGES, ReadingStage } from "../types";
+import {
+  Paper,
+  PaperFilters,
+  PAPER_SORT_OPTIONS,
+  READING_STAGES,
+  ReadingStage,
+  SORT_ORDERS,
+  PaperSortField,
+  SortOrder
+} from "../types";
 
 const defaultFilters: PaperFilters = {
   readingStage: [],
@@ -30,6 +41,8 @@ const defaultFilters: PaperFilters = {
 
 export const PaperLibraryPage = () => {
   const [filters, setFilters] = useState<PaperFilters>(defaultFilters);
+  const [sortBy, setSortBy] = useState<PaperSortField>("dateAdded");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [papers, setPapers] = useState<Paper[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [updatingPaperId, setUpdatingPaperId] = useState<string>("");
@@ -40,7 +53,7 @@ export const PaperLibraryPage = () => {
       try {
         setIsLoading(true);
         setError("");
-        const response = await getPapers(filters);
+        const response = await getPapers(filters, { sortBy, sortOrder });
         setPapers(response);
       } catch (fetchError) {
         setError(fetchError instanceof Error ? fetchError.message : "Failed to load papers.");
@@ -50,14 +63,15 @@ export const PaperLibraryPage = () => {
     };
 
     void fetchPapers();
-  }, [filters]);
+  }, [filters, sortBy, sortOrder]);
 
   const onReadingStageChange = async (paperId: string, readingStage: ReadingStage) => {
     try {
       setUpdatingPaperId(paperId);
       setError("");
-      const updatedPaper = await updatePaperReadingStage(paperId, readingStage);
-      setPapers((prev) => prev.map((paper) => (paper._id === paperId ? updatedPaper : paper)));
+      await updatePaperReadingStage(paperId, readingStage);
+      const response = await getPapers(filters, { sortBy, sortOrder });
+      setPapers(response);
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : "Failed to update reading stage.");
     } finally {
@@ -81,9 +95,45 @@ export const PaperLibraryPage = () => {
 
       <Card className="glass-card">
         <CardContent>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            justifyContent="space-between"
+            alignItems={{ xs: "stretch", md: "center" }}
+            spacing={1.5}
+            sx={{ mb: 2 }}
+          >
             <Typography variant="h6">Library Records</Typography>
-            <Chip label={`Total Papers: ${papers.length}`} color="primary" sx={{ fontWeight: 600 }} />
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "stretch", sm: "center" }}>
+              <FormControl size="small" sx={{ minWidth: 180 }}>
+                <InputLabel>Sort By</InputLabel>
+                <Select
+                  value={sortBy}
+                  label="Sort By"
+                  onChange={(event) => setSortBy(event.target.value as PaperSortField)}
+                >
+                  {PAPER_SORT_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: 160 }}>
+                <InputLabel>Order</InputLabel>
+                <Select
+                  value={sortOrder}
+                  label="Order"
+                  onChange={(event) => setSortOrder(event.target.value as SortOrder)}
+                >
+                  {SORT_ORDERS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Chip label={`Total Papers: ${papers.length}`} color="primary" sx={{ fontWeight: 600 }} />
+            </Stack>
           </Stack>
 
           {error ? <Alert severity="error">{error}</Alert> : null}
@@ -103,6 +153,7 @@ export const PaperLibraryPage = () => {
                     <TableCell>Citation Count</TableCell>
                     <TableCell>Impact Score</TableCell>
                     <TableCell>Date Added</TableCell>
+                    <TableCell>Attached Paper</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -131,11 +182,22 @@ export const PaperLibraryPage = () => {
                       <TableCell>{paper.citationCount}</TableCell>
                       <TableCell>{paper.impactScore}</TableCell>
                       <TableCell>{new Date(paper.dateAdded).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        {paper.paperFileUrl ? (
+                          <Link href={paper.paperFileUrl} target="_blank" rel="noreferrer">
+                            View PDF
+                          </Link>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            Record only
+                          </Typography>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                   {papers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} align="center">
+                      <TableCell colSpan={8} align="center">
                         No papers found for selected filters.
                       </TableCell>
                     </TableRow>

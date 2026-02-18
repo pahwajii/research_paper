@@ -6,6 +6,7 @@ A full-stack app to manage research papers, track reading progress, filter your 
 
 - User signup/login with JWT auth
 - Add papers with metadata (domain, impact, citations, stage, date)
+- Optionally attach a paper PDF while creating a record (not required)
 - Update reading stage from the library table
 - Track stage change history per paper
 - Filter papers and analytics using shared filters
@@ -36,6 +37,7 @@ User -> /api/auth/signup or /api/auth/login
 ```text
 Add Paper page
   -> POST /api/papers
+  -> Optional inline PDF upload (base64, max 10MB)
   -> Backend stores paper + initial readingStageHistory entry
   -> Paper saved with userId ownership
 
@@ -83,6 +85,8 @@ Protected route request
 - `citationCount` (number >= 0, required)
 - `impactScore` (enum, required)
 - `dateAdded` (date, required)
+- `paperFileUrl` (string, optional)
+- `paperFileName` (string, optional)
 - `userId` (ObjectId, required)
 - `createdAt`, `updatedAt` (timestamps)
 
@@ -139,10 +143,15 @@ The following query params are supported on `GET /api/papers` and all analytics 
 - `impactScore` (comma-separated values)
 - `dateAdded` (`this_week`, `this_month`, `last_3_months`, `all_time`)
 
+Additional sorting params are supported on `GET /api/papers`:
+
+- `sortBy` (`dateAdded`, `citationCount`, `updatedAt`, `title`, `firstAuthorName`)
+- `sortOrder` (`asc`, `desc`)
+
 Example:
 
 ```http
-GET /api/papers?readingStage=Abstract%20Read,Fully%20Read&impactScore=High%20Impact&dateAdded=this_month
+GET /api/papers?readingStage=Abstract%20Read,Fully%20Read&impactScore=High%20Impact&dateAdded=this_month&sortBy=citationCount&sortOrder=desc
 ```
 
 ## Project Structure

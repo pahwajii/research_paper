@@ -30,15 +30,32 @@ export const DATE_FILTERS = [
   { label: "All Time", value: "all_time" }
 ] as const;
 
+export const PAPER_SORT_OPTIONS = [
+  { label: "Date Added", value: "dateAdded" },
+  { label: "Citation Count", value: "citationCount" },
+  { label: "Last Updated", value: "updatedAt" },
+  { label: "Paper Title", value: "title" },
+  { label: "First Author", value: "firstAuthorName" }
+] as const;
+
+export const SORT_ORDERS = [
+  { label: "Descending", value: "desc" },
+  { label: "Ascending", value: "asc" }
+] as const;
+
 export type ResearchDomain = (typeof RESEARCH_DOMAINS)[number];
 export type ReadingStage = (typeof READING_STAGES)[number];
 export type ImpactScore = (typeof IMPACT_SCORES)[number];
 export type DateFilterValue = (typeof DATE_FILTERS)[number]["value"];
+export type PaperSortField = (typeof PAPER_SORT_OPTIONS)[number]["value"];
+export type SortOrder = (typeof SORT_ORDERS)[number]["value"];
 
 export interface Paper {
   _id: string;
   title: string;
   firstAuthorName: string;
+  paperFileUrl?: string;
+  paperFileName?: string;
   researchDomain: ResearchDomain;
   readingStage: ReadingStage;
   readingStageHistory?: Array<{

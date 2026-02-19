@@ -66,7 +66,10 @@ const theme = createTheme({
 
 const App = () => {
   const AuthRedirect = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isHydrated } = useAuth();
+    if (!isHydrated) {
+      return null;
+    }
     if (isAuthenticated) {
       return <Navigate to="/" replace />;
     }
@@ -77,7 +80,7 @@ const App = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AppShell>
             <Routes>
               <Route path="/login" element={<LoginPage />} />

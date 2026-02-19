@@ -8,6 +8,7 @@ interface AuthContextValue {
   token: string | null;
   user: AuthUser | null;
   isAuthenticated: boolean;
+  isHydrated: boolean;
   signIn: (token: string, user: AuthUser) => void;
   signOut: () => void;
 }
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem(TOKEN_KEY);
@@ -31,6 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem(USER_KEY);
       }
     }
+    setIsHydrated(true);
   }, []);
 
   const value = useMemo<AuthContextValue>(
@@ -38,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       token,
       user,
       isAuthenticated: Boolean(token),
+      isHydrated,
       signIn: (newToken, newUser) => {
         setToken(newToken);
         setUser(newUser);
@@ -51,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem(USER_KEY);
       }
     }),
-    [token, user]
+    [isHydrated, token, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

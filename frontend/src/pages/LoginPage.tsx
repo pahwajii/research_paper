@@ -1,5 +1,5 @@
 import { Alert, Button, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { login } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
@@ -11,12 +11,18 @@ interface LocationState {
 export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn } = useAuth();
+  const { signIn, isAuthenticated, isHydrated } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (isHydrated && isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, isHydrated, navigate]);
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();

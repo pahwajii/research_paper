@@ -1,18 +1,24 @@
 import { Alert, Button, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signup } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 
 export const SignupPage = () => {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, isAuthenticated, isHydrated } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (isHydrated && isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, isHydrated, navigate]);
 
   const validationError = useMemo(() => {
     if (!name.trim()) return "Name is required.";

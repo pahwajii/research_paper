@@ -105,9 +105,13 @@ export const AnalyticsPage = () => {
         }))
     }));
   }, [scatterData]);
+  const visibleFunnelData = useMemo(
+    () => funnelData.filter((item) => item.count > 0),
+    [funnelData]
+  );
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={{ xs: 1.5, md: 2 }}>
       <Card className="glass-card">
         <CardContent>
           <Typography variant="h5" gutterBottom>
@@ -127,10 +131,10 @@ export const AnalyticsPage = () => {
         </Stack>
       ) : (
         <>
-          <Grid container spacing={2}>
+          <Grid container spacing={1.5} alignItems="stretch">
             <Grid size={{ xs: 12, md: 4 }}>
-              <Card className="glass-card">
-                <CardContent>
+              <Card className="glass-card" sx={{ height: "100%" }}>
+                <CardContent sx={{ "&:last-child": { pb: 2 } }}>
                   <Typography variant="subtitle1">Completion Rate</Typography>
                   <Typography variant="h4" color="primary.main">
                     {summary?.completionRate.percent ?? 0}%
@@ -142,23 +146,27 @@ export const AnalyticsPage = () => {
               </Card>
             </Grid>
             <Grid size={{ xs: 12, md: 8 }}>
-              <Card className="glass-card">
-                <CardContent>
-                  <Typography variant="subtitle1" gutterBottom>
+              <Card className="glass-card" sx={{ height: "100%" }}>
+                <CardContent sx={{ "&:last-child": { pb: 2 } }}>
+                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
                     Papers by Reading Stage
                   </Typography>
-                  {summary?.papersByReadingStage.map((item) => (
-                    <Typography key={item.readingStage} variant="body2">
-                      {item.readingStage}: {item.count}
-                    </Typography>
-                  ))}
+                  <Grid container spacing={0.5}>
+                    {summary?.papersByReadingStage.map((item) => (
+                      <Grid key={item.readingStage} size={{ xs: 12, sm: 6 }}>
+                        <Typography variant="body2">
+                          <strong>{item.readingStage}:</strong> {item.count}
+                        </Typography>
+                      </Grid>
+                    ))}
+                  </Grid>
                 </CardContent>
               </Card>
             </Grid>
           </Grid>
 
           <Card className="glass-card">
-            <CardContent>
+            <CardContent sx={{ "&:last-child": { pb: 2 } }}>
               <Typography variant="subtitle1" gutterBottom>
                 Average Citations per Domain
               </Typography>
@@ -174,41 +182,58 @@ export const AnalyticsPage = () => {
             </CardContent>
           </Card>
 
-          <Grid container spacing={2}>
+          <Grid container spacing={1.5} alignItems="stretch">
             <Grid size={{ xs: 12, lg: 6 }}>
-              <Card className="glass-card">
-                <CardContent>
+              <Card className="glass-card" sx={{ height: "100%" }}>
+                <CardContent sx={{ "&:last-child": { pb: 2 } }}>
                   <Typography variant="subtitle1" gutterBottom>
                     Funnel: Reading Stage Counts
                   </Typography>
-                  <ResponsiveContainer width="100%" height={320}>
-                    <FunnelChart>
-                      <Tooltip />
-                      <Funnel dataKey="count" data={funnelData} nameKey="readingStage">
-                        {funnelData.map((entry, index) => (
-                          <Cell key={`${entry.readingStage}-${index}`} fill={`hsl(${index * 45}, 70%, 45%)`} />
-                        ))}
-                      </Funnel>
-                    </FunnelChart>
-                  </ResponsiveContainer>
+                  {visibleFunnelData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={285}>
+                      <FunnelChart>
+                        <Tooltip />
+                        <Funnel dataKey="count" data={visibleFunnelData} nameKey="readingStage">
+                          {visibleFunnelData.map((entry, index) => (
+                            <Cell key={`${entry.readingStage}-${index}`} fill={`hsl(${index * 45}, 70%, 45%)`} />
+                          ))}
+                        </Funnel>
+                      </FunnelChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No funnel data available for current filters.
+                    </Typography>
+                  )}
                 </CardContent>
               </Card>
             </Grid>
 
             <Grid size={{ xs: 12, lg: 6 }}>
-              <Card className="glass-card">
-                <CardContent>
+              <Card className="glass-card" sx={{ height: "100%" }}>
+                <CardContent sx={{ "&:last-child": { pb: 2 } }}>
                   <Typography variant="subtitle1" gutterBottom>
                     Scatter: Citation Count by Impact Score
                   </Typography>
                   <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
                     X-axis: Citation Count | Y-axis: Impact Score
                   </Typography>
-                  <ResponsiveContainer width="100%" height={320}>
-                    <ScatterChart margin={{ top: 20, right: 20, bottom: 10, left: 10 }}>
+                  <ResponsiveContainer width="100%" height={285}>
+                    <ScatterChart margin={{ top: 20, right: 20, bottom: 10, left: 20 }}>
                       <CartesianGrid />
-                      <XAxis type="number" dataKey="x" name="Citation Count" allowDecimals={false}>
-                        <Label value="Citation Count" position="insideBottom" offset={-5} />
+                      <XAxis
+                        type="number"
+                        dataKey="x"
+                        name="Citation Count"
+                        allowDecimals={false}
+                        tick={{ fontSize: 12 }}
+                      >
+                        <Label
+                          value="Citation Count"
+                          position="insideBottom"
+                          offset={-5}
+                          style={{ fontWeight: 700, fontSize: 14 }}
+                        />
                       </XAxis>
                       <YAxis
                         type="number"
@@ -217,9 +242,11 @@ export const AnalyticsPage = () => {
                         allowDecimals={false}
                         ticks={impactAxisTicks}
                         domain={[0.5, IMPACT_SCORES.length + 0.5]}
+                        width={105}
+                        tick={{ fontSize: 12 }}
                         tickFormatter={(value) => IMPACT_SCORES[Number(value) - 1] ?? ""}
                       >
-                        <Label value="Impact Score" angle={-90} position="insideLeft" />
+                        <Label value="Impact Score" angle={-90} position="insideLeft" style={{ fontWeight: 700, fontSize: 14 }} />
                       </YAxis>
                       <Tooltip cursor={{ strokeDasharray: "3 3" }} />
                       <Legend />
@@ -240,11 +267,11 @@ export const AnalyticsPage = () => {
           </Grid>
 
           <Card className="glass-card">
-            <CardContent>
+            <CardContent sx={{ "&:last-child": { pb: 2 } }}>
               <Typography variant="subtitle1" gutterBottom>
                 Stacked Bar: Domain vs Reading Stage
               </Typography>
-              <ResponsiveContainer width="100%" height={380}>
+              <ResponsiveContainer width="100%" height={340}>
                 <BarChart data={stackedData} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="researchDomain" />

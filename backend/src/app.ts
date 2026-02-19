@@ -5,10 +5,14 @@ import papersRouter from "./routes/papers.routes";
 import analyticsRouter from "./routes/analytics.routes";
 
 const app = express();
+const allowedCorsOrigins = (process.env.CORS_ORIGIN ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN ?? "*"
+    origin: allowedCorsOrigins.length > 0 ? allowedCorsOrigins : true
   })
 );
 app.use(express.json({ limit: "15mb" }));

@@ -15,6 +15,7 @@ import {
   Cell,
   Funnel,
   FunnelChart,
+  Label,
   Legend,
   ResponsiveContainer,
   Scatter,
@@ -51,6 +52,11 @@ const impactColors: Record<string, string> = {
   "Low Impact": "#1976D2",
   Unknown: "#757575"
 };
+const impactScoreToAxisValue = IMPACT_SCORES.reduce<Record<string, number>>((acc, score, index) => {
+  acc[score] = index + 1;
+  return acc;
+}, {});
+const impactAxisTicks = IMPACT_SCORES.map((_, index) => index + 1);
 
 export const AnalyticsPage = () => {
   const [filters, setFilters] = useState<PaperFilters>(defaultFilters);
@@ -92,9 +98,9 @@ export const AnalyticsPage = () => {
       color: impactColors[impact],
       points: scatterData
         .filter((item) => item.impactScore === impact)
-        .map((item, index) => ({
+        .map((item) => ({
           x: item.citationCount,
-          y: index + 1,
+          y: impactScoreToAxisValue[item.impactScore],
           title: item.title
         }))
     }));
@@ -195,11 +201,26 @@ export const AnalyticsPage = () => {
                   <Typography variant="subtitle1" gutterBottom>
                     Scatter: Citation Count by Impact Score
                   </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                    X-axis: Citation Count | Y-axis: Impact Score
+                  </Typography>
                   <ResponsiveContainer width="100%" height={320}>
                     <ScatterChart margin={{ top: 20, right: 20, bottom: 10, left: 10 }}>
                       <CartesianGrid />
-                      <XAxis type="number" dataKey="x" name="Citation Count" />
-                      <YAxis type="number" dataKey="y" name="Paper Index" />
+                      <XAxis type="number" dataKey="x" name="Citation Count" allowDecimals={false}>
+                        <Label value="Citation Count" position="insideBottom" offset={-5} />
+                      </XAxis>
+                      <YAxis
+                        type="number"
+                        dataKey="y"
+                        name="Impact Score"
+                        allowDecimals={false}
+                        ticks={impactAxisTicks}
+                        domain={[0.5, IMPACT_SCORES.length + 0.5]}
+                        tickFormatter={(value) => IMPACT_SCORES[Number(value) - 1] ?? ""}
+                      >
+                        <Label value="Impact Score" angle={-90} position="insideLeft" />
+                      </YAxis>
                       <Tooltip cursor={{ strokeDasharray: "3 3" }} />
                       <Legend />
                       {scatterSeries.map((series) => (

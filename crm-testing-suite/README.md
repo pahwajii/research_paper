@@ -1,20 +1,32 @@
 # CRM Testing Suite
 
-This Playwright suite exercises the research paper CRUD UI in the `frontend` app.
+This Playwright suite covers end-to-end UI scenarios for the research paper tracker frontend.
 
 ## Setup
 
-1. Open a terminal in `research_paper/crm-testing-suite`
+1. Open a terminal in `research_paper/research_paper/crm-testing-suite`
 2. Run `npm install`
-3. Start tests with `npm test`
+3. Run `npx playwright install` to download the browser binaries
 
-## What is covered
+## Run tests
 
-- `tests/login.spec.js`: login flow with mocked auth
-- `tests/lead.spec.js`: create a paper record, filter by research domain, and update a paper record's stage
+- `npm test` — run the suite headlessly
+- `npm test:headed` — run tests in headed mode
+- `npx playwright show-report` — open the latest HTML report
+
+## Test coverage
+
+- `tests/login.spec.js`
+  - login flow
+  - successful navigation to the Add Paper page
+- `tests/lead.spec.js`
+  - create a paper record
+  - filter the paper library by research domain
+  - update a paper reading stage
 
 ## Notes
 
-- The suite uses Playwright's built-in runner.
-- The Vite frontend app is started automatically by `playwright.config.js`.
-- API requests are mocked so the suite can run without a live backend.
+- The suite uses Playwright's built-in test runner.
+- `playwright.config.js` starts the Vite frontend dev server automatically.
+- API requests are mocked in the tests so the suite does not require a live backend.
+- The library filter and CRUD flows have been verified to pass.
